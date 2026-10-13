@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>Daymark — Personal Progress Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f4f6fb;--panel:#fff;--ink:#172033;--muted:#758097;--line:#e6eaf2;--nav:#101827;--accent:#6558e8;--green:#159a72;--amber:#d58a18;--red:#d94c65;--shadow:0 8px 28px #1825440b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #a9a2ff;outline-offset:2px}
+.app{display:grid;grid-template-columns:245px 1fr;min-height:100vh}.sidebar{background:var(--nav);color:white;padding:25px 17px;display:flex;flex-direction:column;gap:26px}.brand{display:flex;align-items:center;gap:11px;padding:0 8px}.logo{height:38px;width:38px;border-radius:13px;background:linear-gradient(135deg,#a49bff,#6154e6);display:grid;place-items:center;font-weight:900;font-size:20px}.brand strong{font-size:19px;letter-spacing:-.5px}.brand small{display:block;color:#9ba7bc;font-size:11px;letter-spacing:1.3px;text-transform:uppercase}.nav-label{font-size:10px;letter-spacing:1.7px;color:#7f8aa0;padding:0 11px;margin-bottom:7px}.nav{display:grid;gap:5px}.nav button{border:0;background:transparent;color:#aeb8ca;text-align:left;padding:12px 13px;border-radius:11px;display:flex;align-items:center;gap:12px;font-size:14px}.nav button.active,.nav button:hover{background:#252e43;color:white}.nav .ico{width:20px;text-align:center;font-size:17px}.side-note{margin-top:auto;padding:16px;border:1px solid #2a354a;background:#182235;border-radius:14px;color:#aeb8ca;font-size:12px}.side-note b{display:block;color:#fff;font-size:13px;margin-bottom:5px}.main{min-width:0;padding:27px clamp(16px,3vw,42px) 45px;max-width:1600px;width:100%;margin:0 auto}.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:25px}.eyebrow{font-size:11px;color:var(--muted);letter-spacing:1.6px;text-transform:uppercase;font-weight:800}.topbar h1{font-size:clamp(25px,3vw,34px);letter-spacing:-1.2px;margin:3px 0 0}.top-actions{display:flex;gap:8px;align-items:center}.date-chip{background:white;border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:#48536a;font-size:13px}.btn{border:0;border-radius:10px;padding:10px 14px;background:var(--accent);color:white;font-weight:700;font-size:13px;box-shadow:0 5px 12px #6558e822}.btn:hover{filter:brightness(1.04)}.btn.secondary{background:#f0efff;color:#5044ce;box-shadow:none}.btn.ghost{background:white;color:#58637a;border:1px solid var(--line);box-shadow:none}.btn.danger{background:#fff0f2;color:#c53c56;box-shadow:none}.grid{display:grid;gap:16px}.stats{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:17px}.card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:20px;box-shadow:var(--shadow);min-width:0}.stat-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px;font-weight:700}.stat-icon{height:34px;width:34px;border-radius:11px;display:grid;place-items:center;background:#f0efff;font-size:17px}.stat-value{font-size:29px;font-weight:800;letter-spacing:-1px;margin:12px 0 2px}.stat-foot{font-size:11px;color:var(--muted)}.main-grid{grid-template-columns:minmax(0,1.35fr) minmax(300px,.9fr);align-items:start}.section-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:15px}.section-head h2{font-size:17px;letter-spacing:-.3px;margin:0}.section-head p{margin:4px 0 0;color:var(--muted);font-size:12px}.pill{font-size:11px;font-weight:800;padding:5px 9px;border-radius:99px;background:#f0efff;color:#5b4fe0;white-space:nowrap}.progress-track{height:8px;background:#eef0f6;border-radius:20px;overflow:hidden}.progress-fill{height:100%;background:linear-gradient(90deg,#6558e8,#9d91ff);border-radius:20px;transition:width .25s}.todo-form{display:flex;gap:8px;margin:14px 0 12px}.todo-form input{flex:1;min-width:0}.field,input,select,textarea{border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);padding:10px 11px;width:100%}textarea{resize:vertical;min-height:76px}.todo-list{display:grid;gap:8px}.todo-item{display:flex;gap:10px;align-items:center;padding:11px 10px;border:1px solid #edf0f5;border-radius:12px}.todo-item.done{background:#fafbfe}.todo-item input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent);flex-shrink:0}.todo-text{flex:1;min-width:0}.todo-text strong{display:block;font-size:13px;font-weight:650;overflow-wrap:anywhere}.todo-item.done .todo-text strong{text-decoration:line-through;color:#929bad}.todo-meta{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:4px}.tag{font-size:10px;padding:3px 6px;border-radius:5px;background:#f1f3f8;color:#6e7890}.tag.high{background:#fff0e8;color:#bd641e}.tag.med{background:#edf6ff;color:#3674ae}.mini-btn{border:0;background:transparent;color:#9aa3b4;padding:5px;font-size:15px}.empty{padding:24px 12px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--line);border-radius:12px}.right-stack{display:grid;gap:16px}.expense-total{font-size:26px;font-weight:800;letter-spacing:-.8px}.expense-list{display:grid;gap:8px;margin-top:12px}.expense-row{display:flex;align-items:center;gap:10px;font-size:12px}.expense-emoji{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#f4f5fa;font-size:17px}.expense-name{flex:1;min-width:0}.expense-name strong{display:block;font-size:12px}.expense-name small{color:var(--muted)}.expense-amount{font-weight:750;font-variant-numeric:tabular-nums}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.form-grid .full{grid-column:1/-1}.field-label{display:block;font-size:11px;color:#66718a;font-weight:800;margin:0 0 5px}.mood-row{display:flex;gap:8px}.mood{flex:1;border:1px solid var(--line);border-radius:10px;padding:9px 3px;background:white;text-align:center;font-size:19px}.mood span{display:block;font-size:10px;color:var(--muted)}.mood.selected{border-color:#8d82f4;background:#f4f2ff;box-shadow:inset 0 0 0 1px #8d82f4}.habit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.habit{border:1px solid var(--line);border-radius:11px;padding:11px 8px;text-align:center;background:white}.habit input{width:auto;accent-color:var(--green)}.habit strong{display:block;font-size:12px;margin-top:5px}.habit small{font-size:10px;color:var(--muted)}.review-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.review-box{display:flex;flex-direction:column;gap:8px}.review-box h3{font-size:13px;margin:0}.review-box p{font-size:11px;color:var(--muted);margin:0}.review-box textarea{min-height:110px;font-size:13px}.period-nav{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.period-nav button{border:1px solid var(--line);background:white;border-radius:9px;padding:8px 11px;color:#536078}.period-nav strong{min-width:145px;text-align:center;font-size:13px}.chart{display:flex;gap:10px;align-items:end;height:165px;padding-top:15px}.bar-wrap{flex:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:end;gap:7px;min-width:0}.bar{width:min(35px,70%);min-height:3px;border-radius:7px 7px 3px 3px;background:linear-gradient(180deg,#9a90ff,#6558e8);position:relative}.bar-label{font-size:10px;color:var(--muted);white-space:nowrap}.bar-value{font-size:10px;color:#657087}.category-line{display:flex;align-items:center;gap:8px;margin:12px 0;font-size:12px}.category-line .name{width:90px;color:#59657c}.category-line .progress-track{flex:1;height:7px}.category-line .amount{width:72px;text-align:right;font-weight:700;font-size:11px}.insight{padding:13px;border-radius:12px;background:#f4f3ff;margin-top:10px;color:#5147bd;font-size:12px}.insight strong{display:block;margin-bottom:3px}.notice{color:var(--muted);font-size:11px;line-height:1.5}.hidden{display:none!important}.page{display:none}.page.active{display:block}.section-gap{margin-top:17px}.daily-bottom{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.review-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:15px 0}.review-metric{border:1px solid var(--line);border-radius:12px;padding:13px}.review-metric small{display:block;color:var(--muted);font-size:11px}.review-metric strong{font-size:22px;display:block;margin-top:4px}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#182235;color:white;padding:11px 17px;border-radius:10px;box-shadow:0 10px 30px #0002;font-size:13px;z-index:10;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw}.toast.show{opacity:1}.footer-note{text-align:center;color:#9aa3b4;font-size:11px;margin-top:26px}
+@media(max-width:950px){.app{grid-template-columns:1fr}.sidebar{padding:12px 14px;gap:12px}.brand{padding:0 4px}.side-note,.nav-label{display:none}.nav{display:flex;overflow-x:auto;padding-bottom:2px}.nav button{white-space:nowrap;padding:10px 12px}.nav button .ico{width:auto}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.main{padding-top:18px}.main-grid{grid-template-columns:1fr}.right-stack{grid-template-columns:repeat(2,minmax(0,1fr))}.review-grid{grid-template-columns:1fr}.review-box textarea{min-height:80px}}
+@media(max-width:600px){.topbar{align-items:flex-start}.top-actions{flex-direction:column;align-items:stretch}.top-actions .btn,.date-chip{white-space:nowrap}.topbar h1{font-size:25px}.card{padding:15px;border-radius:14px}.right-stack,.daily-bottom{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.form-grid .full{grid-column:auto}.habit-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.review-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.review-metric{padding:10px}.review-metric strong{font-size:18px}.todo-form{flex-wrap:wrap}.todo-form input{flex-basis:100%}.stats .stat-value{font-size:25px}.main{padding-left:12px;padding-right:12px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="logo">D</div><div><strong>daymark</strong><small>your life, in focus</small></div></div>
+  <div><div class="nav-label">WORKSPACE</div><nav class="nav" id="nav">
+    <button class="active" data-page="today" type="button"><span class="ico">☀</span>Today</button>
+    <button data-page="analytics" type="button"><span class="ico">▥</span>Progress</button>
+    <button data-page="reviews" type="button"><span class="ico">✧</span>Reviews</button>
+    <button data-page="history" type="button"><span class="ico">▦</span>History</button>
+    <button data-page="settings" type="button"><span class="ico">⚙</span>Data & settings</button>
+  </nav></div>
+  <div class="side-note"><b>Small steps compound.</b>Track what matters, review without judgment, and make tomorrow a little better.</div>
+</aside>
+<main class="main">
+<header class="topbar"><div><div class="eyebrow" id="eyebrow">YOUR DAILY RESET</div><h1 id="pageTitle">Make today count.</h1></div><div class="top-actions"><div class="date-chip" id="todayChip"></div><button class="btn" id="quickAdd" type="button">＋ Add a task</button></div></header>
+
+<section class="page active" id="page-today">
+  <div class="grid stats">
+    <div class="card"><div class="stat-top">Daily completion <span class="stat-icon">✓</span></div><div class="stat-value" id="statCompletion">0%</div><div class="progress-track"><div class="progress-fill" id="completionBar" style="width:0%"></div></div><div class="stat-foot" id="taskFoot">0 of 0 tasks completed</div></div>
+    <div class="card"><div class="stat-top">Money spent <span class="stat-icon">₹</span></div><div class="stat-value" id="statSpend">₹0</div><div class="stat-foot" id="spendFoot">Today's recorded expenses</div></div>
+    <div class="card"><div class="stat-top">Focus time <span class="stat-icon">◷</span></div><div class="stat-value" id="statFocus">0m</div><div class="stat-foot">Intentional work or study</div></div>
+    <div class="card"><div class="stat-top">Day score <span class="stat-icon">✦</span></div><div class="stat-value" id="statScore">—</div><div class="stat-foot">Tasks · focus · wellbeing</div></div>
+  </div>
+  <div class="grid main-grid">
+    <div class="grid">
+      <div class="card"><div class="section-head"><div><h2>Today's must-dos</h2><p>Choose a few meaningful tasks. Done is better than perfect.</p></div><span class="pill" id="taskCount">0 TASKS</span></div>
+        <div class="progress-track"><div class="progress-fill" id="taskProgress" style="width:0%"></div></div>
+        <form class="todo-form" id="todoForm"><input id="taskInput" placeholder="What needs to get done?" maxlength="140" required><select id="taskPriority" style="width:112px"><option value="high">Must-do</option><option value="med">Important</option><option value="low">Optional</option></select><button class="btn" type="submit">Add task</button></form>
+        <div class="todo-list" id="todoList"></div><div class="notice" style="margin-top:12px">Tip: put the 1–3 things that would make today feel successful at the top.</div>
+      </div>
+      <div class="grid daily-bottom">
+        <div class="card"><div class="section-head"><div><h2>Daily check-in</h2><p>How are you showing up today?</p></div></div>
+          <label class="field-label">Mood</label><div class="mood-row" id="moodRow"><button class="mood" data-mood="1" type="button">😣<span>Rough</span></button><button class="mood" data-mood="2" type="button">😕<span>Low</span></button><button class="mood" data-mood="3" type="button">😐<span>Okay</span></button><button class="mood" data-mood="4" type="button">🙂<span>Good</span></button><button class="mood" data-mood="5" type="button">🤩<span>Great</span></button></div>
+          <div class="form-grid section-gap"><div><label class="field-label" for="focusInput">Focus time (minutes)</label><input type="number" id="focusInput" min="0" max="1440" step="5" placeholder="e.g. 90"></div><div><label class="field-label" for="sleepInput">Sleep (hours)</label><input type="number" id="sleepInput" min="0" max="24" step=".25" placeholder="e.g. 7.5"></div><div class="full"><label class="field-label" for="dayNote">Daily note / reflection</label><textarea id="dayNote" placeholder="What stood out today? What do you want to remember?"></textarea></div><div class="full"><button class="btn" id="saveCheckin" type="button">Save check-in</button></div></div>
+        </div>
+        <div class="card"><div class="section-head"><div><h2>Habits that help</h2><p>Tick what you completed today.</p></div><span class="pill" id="habitCount">0 / 4</span></div>
+          <div class="habit-grid" id="habitGrid"></div><div class="section-gap"><label class="field-label" for="habitCustom">Personal habit (optional)</label><input id="habitCustom" placeholder="e.g. Read 10 pages"></div><div class="section-gap"><button class="btn secondary" id="saveHabit" type="button">Save habits</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="right-stack">
+      <div class="card"><div class="section-head"><div><h2>Spending today</h2><p>Give every rupee a category.</p></div></div>
+        <div class="expense-total" id="expenseTotal">₹0</div><div class="notice">Your recorded expenses for this date</div>
+        <form id="expenseForm" class="section-gap"><div class="form-grid"><div class="full"><label class="field-label" for="expenseName">What did you spend on?</label><input id="expenseName" placeholder="e.g. Lunch, bus, coffee" maxlength="100" required></div><div><label class="field-label" for="expenseAmount">Amount (₹)</label><input id="expenseAmount" type="number" min=".01" step=".01" placeholder="120" required></div><div><label class="field-label" for="expenseCategory">Category</label><select id="expenseCategory"><option>Food</option><option>Transport</option><option>Shopping</option><option>Bills</option><option>Health</option><option>Learning</option><option>Entertainment</option><option>Other</option></select></div><div class="full"><button class="btn" style="width:100%" type="submit">＋ Log expense</button></div></div></form>
+        <div class="expense-list" id="expenseList"></div>
+      </div>
+      <div class="card"><div class="section-head"><div><h2>End-of-day pulse</h2><p>A quick snapshot, not a judgment.</p></div></div><div class="review-metric"><small>Habits completed</small><strong id="pulseHabits">0 / 4</strong></div><div class="review-metric section-gap"><small>Priority tasks finished</small><strong id="pulsePriority">0 / 0</strong></div><div class="insight" id="dailyInsight"><strong>Your next best step</strong>Add a must-do task and begin with that.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-analytics"><div class="card">
+  <div class="section-head"><div><h2>Your progress, zoomed out</h2><p>Switch time horizons to spot patterns and course-correct.</p></div><div class="period-nav"><button id="periodPrev" type="button">←</button><strong id="periodLabel">This week</strong><button id="periodNext" type="button">→</button><select id="periodType" style="width:auto"><option value="week">Weekly</option><option value="month">Monthly</option><option value="year">Yearly</option></select></div></div>
+  <div class="grid stats"><div class="card"><div class="stat-top">Task completion</div><div class="stat-value" id="aCompletion">0%</div><div class="stat-foot" id="aTasks">0 tasks</div></div><div class="card"><div class="stat-top">Total spending</div><div class="stat-value" id="aSpend">₹0</div><div class="stat-foot" id="aSpendFoot">Across selected period</div></div><div class="card"><div class="stat-top">Focus time</div><div class="stat-value" id="aFocus">0h</div><div class="stat-foot">Logged focused minutes</div></div><div class="card"><div class="stat-top">Average mood</div><div class="stat-value" id="aMood">—</div><div class="stat-foot" id="aMoodFoot">From your check-ins</div></div></div>
+  <div class="grid main-grid section-gap"><div class="card"><div class="section-head"><div><h2 id="chartTitle">Daily completion</h2><p>Consistency matters more than a perfect streak.</p></div></div><div class="chart" id="progressChart"></div></div><div class="card"><div class="section-head"><div><h2>Where money went</h2><p>Spend awareness without guilt.</p></div></div><div id="categoryChart"></div><div class="insight" id="spendInsight"></div></div></div>
+  <div class="card section-gap"><div class="section-head"><div><h2>Progress signals</h2><p>Automatically calculated from what you've tracked.</p></div></div><div id="signalList"></div></div>
+</div></section>
+
+<section class="page" id="page-reviews"><div class="card">
+  <div class="section-head"><div><h2>Review & reset</h2><p>Reflect honestly. Keep what works. Change one thing at a time.</p></div><div class="period-nav"><button id="reviewPrev" type="button">←</button><strong id="reviewLabel">Weekly review</strong><button id="reviewNext" type="button">→</button><select id="reviewType" style="width:auto"><option value="week">Weekly</option><option value="month">Monthly</option><option value="year">Yearly</option></select></div></div>
+  <div class="review-summary"><div class="review-metric"><small>Tasks completed</small><strong id="rTasks">0%</strong></div><div class="review-metric"><small>Spent in period</small><strong id="rSpend">₹0</strong></div><div class="review-metric"><small>Focus hours</small><strong id="rFocus">0h</strong></div></div>
+  <div class="grid review-grid"><div class="card review-box"><h3>🌱 What went well?</h3><p>Wins, good decisions, progress, and things to repeat.</p><textarea id="reviewWins" placeholder="I made progress on…"></textarea></div><div class="card review-box"><h3>🛠 What needs to improve?</h3><p>Where did time, money, or energy leak away?</p><textarea id="reviewImprove" placeholder="I struggled with…"></textarea></div><div class="card review-box"><h3>🔁 What will I change?</h3><p>Choose specific actions for the next period.</p><textarea id="reviewChange" placeholder="Next period, I will…"></textarea></div></div>
+  <div class="grid daily-bottom section-gap"><div class="card"><h3 style="margin-top:0;font-size:14px">A commitment for next period</h3><p class="notice">One small promise you can actually keep.</p><input id="reviewCommit" placeholder="e.g. Plan tomorrow before 10 pm"></div><div class="card"><h3 style="margin-top:0;font-size:14px">Your automatic review</h3><div id="autoReview" class="notice">Add a few tasks and expenses to unlock useful patterns.</div></div></div>
+  <div class="section-gap" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="saveReview" type="button">Save review</button><button class="btn ghost" id="clearReview" type="button">Clear this review</button></div>
+</div></section>
+
+<section class="page" id="page-history"><div class="card"><div class="section-head"><div><h2>Your activity history</h2><p>Review recorded days and jump back to edit them.</p></div><input id="historySearch" placeholder="Search notes or tasks…" style="max-width:240px"></div><div id="historyList"></div></div></section>
+
+<section class="page" id="page-settings"><div class="grid main-grid">
+  <div class="card"><div class="section-head"><div><h2>Cloud Database (Supabase)</h2><p>Connect a database to sync your tracker data.</p></div><span class="pill" id="syncStatus">OFFLINE</span></div>
+    <div class="insight"><strong>Cloud Sync</strong>Enter your Supabase project URL and anon/publishable key. Never put your service_role key in this page.</div>
+    <div class="form-grid section-gap"><div class="full"><label class="field-label" for="supabaseUrl">Supabase Project URL</label><input id="supabaseUrl" placeholder="https://your-project.supabase.co"></div><div class="full"><label class="field-label" for="supabaseKey">Supabase anon / publishable key</label><input id="supabaseKey" placeholder="Your public anon key"></div><div class="full"><button class="btn" id="saveSupabaseConfig" type="button">Connect & Sync Cloud DB</button></div></div>
+    <div class="section-gap"><h3 style="font-size:14px">Back up or move your data</h3><p class="notice">Export a JSON backup regularly. Import it later to restore your tracker on this or another device.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="exportBtn" type="button">Export backup (JSON)</button><button class="btn secondary" id="exportCsv" type="button">Export expenses (CSV)</button><label class="btn ghost" for="importFile">Import backup</label><input class="hidden" type="file" id="importFile" accept=".json,application/json"></div></div>
+    <div class="section-gap"><h3 style="font-size:14px">Your tracking defaults</h3><div class="form-grid"><div><label class="field-label" for="budgetInput">Monthly spending target (₹)</label><input type="number" id="budgetInput" min="0" step="500" placeholder="e.g. 12000"></div><div><label class="field-label" for="focusTarget">Daily focus target (minutes)</label><input type="number" id="focusTarget" min="0" step="15" placeholder="e.g. 90"></div><div class="full"><button class="btn secondary" id="saveSettings" type="button">Save targets</button></div></div></div>
+  </div>
+  <div class="card"><div class="section-head"><div><h2>Tracker at a glance</h2><p>How much you've logged so far.</p></div></div><div class="review-metric"><small>Days with entries</small><strong id="settingDays">0</strong></div><div class="review-metric section-gap"><small>Total tasks created</small><strong id="settingTasks">0</strong></div><div class="review-metric section-gap"><small>Total expenses recorded</small><strong id="settingExpenses">0</strong></div><div class="section-gap"><button class="btn danger" id="wipeBtn" type="button">Delete all tracker data</button></div><p class="notice">This cannot be undone. Export a backup first if you might want your data later.</p></div>
+</div></section>
+<div class="footer-note">DAYMARK · Built for progress, not perfection · All amounts in INR</div>
+</main></div><div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const dateObj = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d,12); };
+const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const fmtDate = s => dateObj(s).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+const money = n => '₹' + Number(n || 0).toLocaleString('en-IN',{maximumFractionDigits:2});
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const defaultDay = () => ({tasks:[],expenses:[],focus:0,sleep:'',mood:0,note:'',habits:[false,false,false,false],customHabit:''});
+let db = {days:{},reviews:{},settings:{budget:12000,focusTarget:90,supabaseUrl:'',supabaseKey:''}};
+let currentDate = todayISO(), activePage = 'today', periodType = 'week', periodOffset = 0, reviewType = 'week', reviewOffset = 0;
+let supabaseClient = null, toastTimer = null, cloudBusy = false;
+const habitNames = ['Move','Learn','Hydrate','Wind down'];
+
+function toast(message) {
+  const el = $('toast'); el.textContent = message; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function day(s=currentDate) { if (!db.days[s]) db.days[s] = defaultDay(); return db.days[s]; }
+function allDays(start,end) {
+  return Object.entries(db.days).filter(([date]) => date >= start && date <= end)
+    .map(([date,d]) => ({date,...d})).sort((a,b) => a.date.localeCompare(b.date));
+}
+function range(type,offset=0) {
+  const now = dateObj(todayISO()); let start,end,label;
+  if (type === 'week') {
+    const dow = (now.getDay()+6)%7; start = new Date(now); start.setDate(now.getDate()-dow+offset*7);
+    end = new Date(start); end.setDate(start.getDate()+6);
+    label = `${start.toLocaleDateString(undefined,{month:'short',day:'numeric'})} – ${end.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}`;
+  } else if (type === 'month') {
+    start = new Date(now.getFullYear(),now.getMonth()+offset,1,12); end = new Date(start.getFullYear(),start.getMonth()+1,0,12);
+    label = start.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+  } else {
+    start = new Date(now.getFullYear()+offset,0,1,12); end = new Date(now.getFullYear()+offset,11,31,12); label = String(start.getFullYear());
+  }
+  return {start:iso(start),end:iso(end),label};
+}
+function summarize(type,offset) {
+  const r = range(type,offset), days = allDays(r.start,r.end);
+  let tasks=0,done=0,spend=0,focus=0,moods=[],habitDone=0,habitPossible=0,sleep=[],expCount=0;
+  days.forEach(d => {
+    const ts=d.tasks||[], es=d.expenses||[], hs=d.habits||[];
+    tasks += ts.length; done += ts.filter(t=>t.done).length;
+    spend += es.reduce((a,e)=>a+Number(e.amount||0),0); expCount += es.length;
+    focus += Number(d.focus)||0; if (d.mood) moods.push(Number(d.mood));
+    if (d.sleep !== '' && d.sleep != null && Number.isFinite(Number(d.sleep))) sleep.push(Number(d.sleep));
+    habitDone += hs.filter(Boolean).length; habitPossible += hs.length;
+  });
+  return {...r,days,tasks,done,spend,focus,moods,sleep,habitDone,habitPossible,expCount,
+    completion:tasks?Math.round(done/tasks*100):0,
+    avgMood:moods.length?moods.reduce((a,b)=>a+b,0)/moods.length:0,
+    avgSleep:sleep.length?sleep.reduce((a,b)=>a+b,0)/sleep.length:0};
+}
+
+/* Local storage is always used as the immediate/offline copy. Cloud sync is optional. */
+function saveLocal() {
+  try { localStorage.setItem('daymark-v1', JSON.stringify(db)); }
+  catch (e) { toast('Could not save locally. Export a backup and check browser storage.'); }
+}
+function save() { saveLocal(); if (supabaseClient) pushToCloud(); }
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem('daymark-v1');
+    if (raw) {
+      const saved = JSON.parse(raw);
+      if (saved && saved.days && typeof saved.days === 'object') {
+        db = {...db,...saved,days:saved.days||{},reviews:saved.reviews||{},settings:{...db.settings,...(saved.settings||{})}};
+      }
+    }
+  } catch (e) { console.error('Local data could not be read',e); toast('Could not read saved data.'); }
+}
+function setSyncStatus(text,online=false) {
+  const el=$('syncStatus'); if(!el)return;
+  el.textContent=text; el.style.background=online?'#e6f9f2':'#fff0f2'; el.style.color=online?'#159a72':'#b45309';
+}
+function initSupabase() {
+  supabaseClient = null;
+  const url = (db.settings.supabaseUrl||'').trim(), key=(db.settings.supabaseKey||'').trim();
+  if (!url || !key) { setSyncStatus('OFFLINE'); return; }
+  if (!window.supabase || !window.supabase.createClient) { setSyncStatus('SDK ERROR'); toast('Supabase library did not load. Check your internet connection.'); return; }
+  try {
+    supabaseClient = window.supabase.createClient(url,key);
+    setSyncStatus('CONNECTING');
+    pullFromCloud();
+  } catch (e) { console.error(e); setSyncStatus('ERROR'); toast('Could not initialize Supabase. Check the URL and key.'); }
+}
+async function pushToCloud() {
+  if (!supabaseClient || cloudBusy) return;
+  try {
+    const {error} = await supabaseClient.from('tracker_data').upsert({id:'main_user_data',payload:db},{onConflict:'id'});
+    if (error) throw error;
+    setSyncStatus('SYNCED',true);
+  } catch (e) {
+    console.error('Supabase save failed:',e);
+    setSyncStatus('SYNC ERROR');
+  }
+}
+async function pullFromCloud() {
+  if (!supabaseClient) return;
+  cloudBusy = true;
+  try {
+    const {data,error} = await supabaseClient.from('tracker_data').select('payload').eq('id','main_user_data').maybeSingle();
+    if (error) throw error;
+    if (data && data.payload && typeof data.payload === 'object') {
+      const cloud = data.payload;
+      // Merge local and cloud by date so a cloud response won't silently erase local-only dates.
+      db = {
+        ...db,...cloud,
+        days:{...(cloud.days||{}),...(db.days||{})},
+        reviews:{...(cloud.reviews||{}),...(db.reviews||{})},
+        settings:{...db.settings,...(cloud.settings||{})}
+      };
+      saveLocal(); renderAll(); toast('Cloud data loaded. Local entries were preserved.');
+      // Upload the merged copy after leaving the pull phase.
+      cloudBusy = false; await pushToCloud(); return;
+    } else {
+      // First connection: create the initial row with current local data.
+      cloudBusy = false; await pushToCloud(); return;
+    }
+  } catch (e) {
+    console.error('Supabase load failed:',e);
+    setSyncStatus('SYNC ERROR');
+    toast('Supabase sync failed. Check the table, key, and Row Level Security policies.');
+  } finally { cloudBusy = false; }
+}
+
+function taskHTML(t,i) {
+  return `<div class="todo-item ${t.done?'done':''}"><input type="checkbox" data-task-check="${i}" ${t.done?'checked':''} aria-label="Mark task done"><div class="todo-text"><strong>${esc(t.text)}</strong><div class="todo-meta"><span class="tag ${esc(t.priority)}">${t.priority==='high'?'MUST-DO':t.priority==='med'?'IMPORTANT':'OPTIONAL'}</span>${t.done?'<span class="tag">Completed</span>':''}</div></div><button class="mini-btn" data-task-delete="${i}" title="Delete task" aria-label="Delete task">×</button></div>`;
+}
+function renderToday() {
+  const d=day(), tasks=d.tasks||[], expenses=d.expenses||[], done=tasks.filter(t=>t.done).length;
+  const pct=tasks.length?Math.round(done/tasks.length*100):0, spend=expenses.reduce((a,e)=>a+Number(e.amount||0),0);
+  const priority=tasks.filter(t=>t.priority==='high'), priorityDone=priority.filter(t=>t.done).length;
+  const habits=d.habits||[false,false,false,false], habitCount=habits.filter(Boolean).length;
+  $('todayChip').textContent=fmtDate(currentDate); $('statCompletion').textContent=pct+'%'; $('completionBar').style.width=pct+'%';
+  $('taskFoot').textContent=`${done} of ${tasks.length} tasks completed`; $('taskCount').textContent=`${tasks.length} TASK${tasks.length===1?'':'S'}`;
+  $('taskProgress').style.width=pct+'%'; $('todoList').innerHTML=tasks.length?tasks.map(taskHTML).join(''):'<div class="empty">Nothing on your list yet. Add one small, meaningful task above.</div>';
+  $('statSpend').textContent=money(spend); $('expenseTotal').textContent=money(spend); $('spendFoot').textContent=`${expenses.length} expense${expenses.length===1?'':'s'} logged today`;
+  $('statFocus').textContent=Number(d.focus)>=60?`${(Number(d.focus)/60).toFixed(1).replace(/\.0$/,'')}h`:`${Number(d.focus)||0}m`;
+  const scoreParts=[]; if(tasks.length)scoreParts.push(pct);
+  scoreParts.push(Math.min(100,Math.round((Number(d.focus)||0)/Math.max(1,Number(db.settings.focusTarget)||90)*100)));
+  if(d.mood)scoreParts.push(Number(d.mood)*20); if(habits.length)scoreParts.push(Math.round(habitCount/habits.length*100));
+  const score=Math.round(scoreParts.reduce((a,b)=>a+b,0)/scoreParts.length);
+  $('statScore').textContent=(tasks.length||d.focus||d.mood||habitCount)?score+'/100':'—';
+  const icons={Food:'🍜',Transport:'🚌',Shopping:'🛍️',Bills:'🧾',Health:'💊',Learning:'📚',Entertainment:'🎬',Other:'📌'};
+  $('expenseList').innerHTML=expenses.length?expenses.slice().reverse().map(e=>`<div class="expense-row"><div class="expense-emoji">${icons[e.category]||'📌'}</div><div class="expense-name"><strong>${esc(e.name)}</strong><small>${esc(e.category)}</small></div><div class="expense-amount">${money(e.amount)}</div><button class="mini-btn" data-expense-delete="${esc(e.id)}" aria-label="Delete expense">×</button></div>`).join(''):'<div class="empty">No spending logged today.</div>';
+  $('focusInput').value=d.focus??''; $('sleepInput').value=d.sleep??''; $('dayNote').value=d.note??''; $('habitCustom').value=d.customHabit||'';
+  document.querySelectorAll('[data-mood]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.mood)===Number(d.mood)));
+  $('habitGrid').innerHTML=habitNames.map((name,i)=>`<label class="habit"><input type="checkbox" data-habit="${i}" ${habits[i]?'checked':''}><strong>${name}</strong><small>${habits[i]?'Done':'Not yet'}</small></label>`).join('')+(d.customHabit?`<label class="habit"><input type="checkbox" data-habit="4" ${(habits[4]||false)?'checked':''}><strong>${esc(d.customHabit)}</strong><small>${habits[4]?'Done':'Not yet'}</small></label>`:'');
+  $('habitCount').textContent=`${habitCount} / ${habits.length}`; $('pulseHabits').textContent=`${habitCount} / ${habits.length}`; $('pulsePriority').textContent=`${priorityDone} / ${priority.length}`;
+  let insight='Pick one task and give it your first focused 20 minutes.';
+  if(tasks.length&&pct===100)insight='You completed every task. Celebrate the follow-through and plan a lighter reset.';
+  else if(tasks.length&&priority.length&&priorityDone===priority.length)insight='Your must-dos are complete. Decide intentionally whether to continue or recharge.';
+  else if(spend>(Number(db.settings.budget)||12000)/30)insight='Today’s spending is above your rough daily budget pace. Review it with curiosity, not guilt.';
+  else if(Number(d.focus)>=Number(db.settings.focusTarget||90))insight='You met your focus target. Protect a little time to recover.';
+  $('dailyInsight').innerHTML=`<strong>Your next best step</strong>${insight}`;
+}
+function bindToday() {
+  $('todoList').onchange=e=>{const i=e.target.dataset.taskCheck;if(i!==undefined){day().tasks[Number(i)].done=e.target.checked;save();renderToday();}};
+  $('todoList').onclick=e=>{const b=e.target.closest('[data-task-delete]');if(b){day().tasks.splice(Number(b.dataset.taskDelete),1);save();renderToday();}};
+  $('todoForm').onsubmit=e=>{e.preventDefault();const text=$('taskInput').value.trim();if(!text)return;day().tasks.push({id:uid(),text,priority:$('taskPriority').value,done:false,created:new Date().toISOString()});$('taskInput').value='';save();renderToday();};
+  $('expenseForm').onsubmit=e=>{e.preventDefault();const amount=Number($('expenseAmount').value);const name=$('expenseName').value.trim();if(!name||!Number.isFinite(amount)||amount<=0)return;day().expenses.push({id:uid(),name,amount,category:$('expenseCategory').value});$('expenseName').value='';$('expenseAmount').value='';save();renderToday();toast('Expense logged');};
+  $('expenseList').onclick=e=>{const b=e.target.closest('[data-expense-delete]');if(b){day().expenses=day().expenses.filter(x=>x.id!==b.dataset.expenseDelete);save();renderToday();}};
+  $('moodRow').onclick=e=>{const b=e.target.closest('[data-mood]');if(b){day().mood=Number(b.dataset.mood);save();renderToday();}};
+  $('saveCheckin').onclick=()=>{day().focus=Math.min(1440,Math.max(0,Number($('focusInput').value)||0));day().sleep=$('sleepInput').value;day().note=$('dayNote').value;save();renderToday();toast('Daily check-in saved');};
+  $('habitGrid').onchange=e=>{if(!e.target.matches('[data-habit]'))return;const i=Number(e.target.dataset.habit);if(Number.isInteger(i)){day().habits[i]=e.target.checked;save();renderToday();}};
+  $('saveHabit').onclick=()=>{const d=day(),old=d.customHabit,newName=$('habitCustom').value.trim();if(newName!==old){if(old&&d.habits.length>4)d.habits.splice(4,1);d.customHabit=newName;if(newName&&d.habits.length<5)d.habits.push(false);}save();renderToday();toast('Habits saved');};
+}
+function renderAnalytics() {
+  const s=summarize(periodType,periodOffset);$('periodLabel').textContent=s.label;$('aCompletion').textContent=s.completion+'%';$('aTasks').textContent=`${s.done} done of ${s.tasks} created`;
+  $('aSpend').textContent=money(s.spend);$('aSpendFoot').textContent=`${s.expCount} recorded purchases`;$('aFocus').textContent=(s.focus/60).toFixed(1)+'h';
+  $('aMood').textContent=s.avgMood?s.avgMood.toFixed(1)+'/5':'—';$('aMoodFoot').textContent=`${s.moods.length} check-in${s.moods.length===1?'':'s'}`;
+  $('chartTitle').textContent=periodType==='year'?'Monthly completion':periodType==='month'?'Weekly completion':'Daily completion';
+  const buckets=[];
+  if(periodType==='week'){
+    for(let i=0;i<7;i++){const dt=dateObj(s.start);dt.setDate(dt.getDate()+i);const ds=iso(dt),d=db.days[ds]||defaultDay(),n=d.tasks.length,p=n?Math.round(d.tasks.filter(t=>t.done).length/n*100):0;buckets.push({label:dt.toLocaleDateString(undefined,{weekday:'short'}),value:p,sub:p+'%'});}
+  } else if(periodType==='month'){
+    let cur=dateObj(s.start),end=dateObj(s.end),i=1;
+    while(cur<=end){let bEnd=new Date(cur);bEnd.setDate(cur.getDate()+6);if(bEnd>end)bEnd=end;const z=allDays(iso(cur),iso(bEnd));let n=0,k=0;z.forEach(d=>{n+=d.tasks.length;k+=d.tasks.filter(t=>t.done).length;});const p=n?Math.round(k/n*100):0;buckets.push({label:'W'+i,value:p,sub:p+'%'});cur=new Date(bEnd);cur.setDate(cur.getDate()+1);i++;}
+  } else {
+    for(let i=0;i<12;i++){const year=Number(s.start.slice(0,4)),st=iso(new Date(year,i,1,12)),en=iso(new Date(year,i+1,0,12)),z=allDays(st,en);let n=0,k=0;z.forEach(d=>{n+=d.tasks.length;k+=d.tasks.filter(t=>t.done).length;});const p=n?Math.round(k/n*100):0;buckets.push({label:new Date(year,i,1).toLocaleDateString(undefined,{month:'short'}),value:p,sub:p+'%'});}
+  }
+  $('progressChart').innerHTML=buckets.map(b=>`<div class="bar-wrap"><span class="bar-value">${b.sub}</span><div class="bar" style="height:${Math.max(3,b.value)}%"></div><span class="bar-label">${b.label}</span></div>`).join('');
+  const cats={};s.days.forEach(d=>(d.expenses||[]).forEach(e=>cats[e.category]=(cats[e.category]||0)+Number(e.amount||0)));
+  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  $('categoryChart').innerHTML=sorted.length?sorted.map(([name,val])=>`<div class="category-line"><span class="name">${esc(name)}</span><div class="progress-track"><div class="progress-fill" style="width:${s.spend?val/s.spend*100:0}%"></div></div><span class="amount">${money(val)}</span></div>`).join(''):'<div class="empty">Log a few expenses to see category patterns.</div>';
+  $('spendInsight').innerHTML=`<strong>${s.spend?`Average logged spend: ${money(s.spend/Math.max(1,s.days.length))}/tracked day`:'Spending insight'}</strong>${s.spend?(sorted.length?`${esc(sorted[0][0])} is your largest recorded category. Check whether it matches your priorities.`:'Keep logging spending to see patterns.'):'No expenses recorded in this period yet.'}`;
+  const signals=[];
+  signals.push(['Task follow-through',s.tasks?`${s.completion}% completion across ${s.tasks} tasks.`:'No tasks recorded yet. Add a few daily priorities.']);
+  signals.push(['Focus consistency',s.focus?`${(s.focus/60).toFixed(1)} hours logged, averaging ${(s.focus/Math.max(1,s.days.length)/60).toFixed(1)}h per tracked calendar day.`:'No focus time logged. Start with one 25-minute session.']);
+  signals.push(['Wellbeing check-ins',s.avgMood?`Average mood ${s.avgMood.toFixed(1)}/5 across ${s.moods.length} logged days.`:'Mood data is optional; record it when useful.']);
+  signals.push(['Sleep pattern',s.sleep.length?`Average sleep ${s.avgSleep.toFixed(1)} hours across ${s.sleep.length} check-ins.`:'Log sleep to understand its relationship with your energy.']);
+  signals.push(['Budget awareness',`Recorded spending: ${money(s.spend)}. ${db.settings.budget?`Monthly target is ${money(db.settings.budget)}.`:'Set a monthly target in Data & settings.'}`]);
+  $('signalList').innerHTML=signals.map(([a,b])=>`<div class="category-line"><span class="name" style="width:145px;font-weight:750">${a}</span><span style="flex:1;color:#647089">${b}</span></div>`).join('');
+}
+function reviewKey(){const r=range(reviewType,reviewOffset);return `${reviewType}:${r.start}`;}
+function renderReview() {
+  const s=summarize(reviewType,reviewOffset),key=reviewKey(),r=db.reviews[key]||{};
+  $('reviewLabel').textContent=`${reviewType==='week'?'Weekly':reviewType==='month'?'Monthly':'Yearly'} · ${s.label}`;
+  $('rTasks').textContent=s.completion+'%';$('rSpend').textContent=money(s.spend);$('rFocus').textContent=(s.focus/60).toFixed(1)+'h';
+  $('reviewWins').value=r.wins||'';$('reviewImprove').value=r.improve||'';$('reviewChange').value=r.change||'';$('reviewCommit').value=r.commit||'';
+  const advice=[];if(s.tasks)advice.push(`${s.completion>=75?'Strong follow-through':s.completion>=45?'Some progress to build on':'Make your task list smaller'}: ${s.done}/${s.tasks} tasks completed.`);else advice.push('No tasks tracked yet. Start with 1–3 clear priorities each day.');
+  if(s.spend)advice.push(`You recorded ${money(s.spend)} across ${s.expCount} purchases.`);else advice.push('No spending recorded in this period.');
+  if(s.focus)advice.push(`You logged ${(s.focus/60).toFixed(1)} focus hours.`);if(s.avgMood)advice.push(`Your average mood was ${s.avgMood.toFixed(1)}/5.`);if(s.avgSleep)advice.push(`Your average logged sleep was ${s.avgSleep.toFixed(1)} hours.`);
+  $('autoReview').innerHTML=advice.map(x=>`<p style="margin:0 0 8px">• ${esc(x)}</p>`).join('')+'<p style="margin-top:10px">Use these as prompts, not as a verdict on how well you did.</p>';
+}
+function renderHistory() {
+  const q=$('historySearch').value.trim().toLowerCase();
+  const entries=Object.entries(db.days).filter(([date,d])=>{
+    const tasks=d.tasks||[],expenses=d.expenses||[],text=[date,d.note,...tasks.map(t=>t.text)].join(' ').toLowerCase();
+    return (!q||text.includes(q))&&(tasks.length||expenses.length||d.note||d.focus||d.mood||d.sleep);
+  }).sort((a,b)=>b[0].localeCompare(a[0]));
+  $('historyList').innerHTML=entries.length?entries.map(([date,d])=>`<div class="todo-item" style="align-items:flex-start;cursor:pointer" data-open-date="${date}"><div style="flex:1"><strong>${fmtDate(date)}</strong><div class="todo-meta"><span class="tag">${(d.tasks||[]).filter(t=>t.done).length}/${(d.tasks||[]).length} tasks</span><span class="tag">${money((d.expenses||[]).reduce((a,e)=>a+Number(e.amount||0),0))}</span><span class="tag">${Number(d.focus)||0} focus min</span></div>${d.note?`<p class="notice" style="margin:6px 0 0">${esc(d.note.slice(0,180))}</p>`:''}</div><span class="mini-btn">Open →</span></div>`).join(''):'<div class="empty">Your history will appear here as you log tasks, spending, or check-ins.</div>';
+}
+function renderSettings() {
+  $('budgetInput').value=db.settings.budget??'';$('focusTarget').value=db.settings.focusTarget??'';
+  $('supabaseUrl').value=db.settings.supabaseUrl??'';$('supabaseKey').value=db.settings.supabaseKey??'';
+  const entries=Object.entries(db.days),taskCount=entries.reduce((n,[,d])=>n+(d.tasks||[]).length,0),expenseCount=entries.reduce((n,[,d])=>n+(d.expenses||[]).length,0);
+  $('settingDays').textContent=entries.filter(([,d])=>(d.tasks||[]).length||(d.expenses||[]).length||d.note||d.focus||d.mood).length;
+  $('settingTasks').textContent=taskCount;$('settingExpenses').textContent=expenseCount;
+}
+function renderAll() { renderToday();renderAnalytics();renderReview();renderHistory();renderSettings(); }
+function switchPage(p) {
+  if (!['today','analytics','reviews','history','settings'].includes(p)) return;
+  activePage=p;
+  document.querySelectorAll('.page').forEach(page=>page.classList.toggle('active',page.id===`page-${p}`));
+  document.querySelectorAll('#nav button').forEach(button=>button.classList.toggle('active',button.dataset.page===p));
+  const titles={today:['YOUR DAILY RESET','Make today count.'],analytics:['YOUR BIG PICTURE','Progress, not perfection.'],reviews:['PAUSE · REFLECT · RESET','Turn experience into progress.'],history:['LOOKING BACK','Your days, all in one place.'],settings:['YOUR DATA','Your tracker, your rules.']};
+  $('eyebrow').textContent=titles[p][0];$('pageTitle').textContent=titles[p][1];$('quickAdd').classList.toggle('hidden',p!=='today');
+  if(p==='today')renderToday();if(p==='analytics')renderAnalytics();if(p==='reviews')renderReview();if(p==='history')renderHistory();if(p==='settings')renderSettings();
+}
+function download(name,content,type) {
+  const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"';}
+function init() {
+  loadLocal();bindToday();renderAll();
+  $('nav').addEventListener('click',e=>{const button=e.target.closest('button[data-page]');if(button)switchPage(button.dataset.page);});
+  $('quickAdd').onclick=()=>{$('taskInput').focus();$('taskInput').scrollIntoView({behavior:'smooth',block:'center'});};
+  $('periodType').onchange=()=>{periodType=$('periodType').value;periodOffset=0;renderAnalytics();};
+  $('periodPrev').onclick=()=>{periodOffset--;renderAnalytics();};$('periodNext').onclick=()=>{periodOffset++;renderAnalytics();};
+  $('reviewType').onchange=()=>{reviewType=$('reviewType').value;reviewOffset=0;renderReview();};
+  $('reviewPrev').onclick=()=>{reviewOffset--;renderReview();};$('reviewNext').onclick=()=>{reviewOffset++;renderReview();};
+  $('saveReview').onclick=()=>{db.reviews[reviewKey()]={wins:$('reviewWins').value,improve:$('reviewImprove').value,change:$('reviewChange').value,commit:$('reviewCommit').value,updated:new Date().toISOString()};save();toast('Review saved');};
+  $('clearReview').onclick=()=>{if(confirm('Clear the notes for this review period?')){delete db.reviews[reviewKey()];save();renderReview();toast('Review cleared');}};
+  $('historySearch').oninput=renderHistory;$('historyList').onclick=e=>{const b=e.target.closest('[data-open-date]');if(b){currentDate=b.dataset.openDate;switchPage('today');}};
+  $('saveSettings').onclick=()=>{db.settings.budget=Math.max(0,Number($('budgetInput').value)||0);db.settings.focusTarget=Math.max(0,Number($('focusTarget').value)||0);save();renderSettings();toast('Targets saved');};
+  $('saveSupabaseConfig').onclick=()=>{
+    const url=$('supabaseUrl').value.trim(),key=$('supabaseKey').value.trim();
+    if(!url||!key){toast('Enter both the Supabase URL and anon/publishable key.');return;}
+    if(!/^https:\/\/.+\.supabase\.co\/?$/.test(url)){toast('Check the project URL. It should look like https://your-project.supabase.co');return;}
+    db.settings.supabaseUrl=url.replace(/\/$/,'');db.settings.supabaseKey=key;saveLocal();initSupabase();
+    toast('Supabase settings saved. Checking cloud connection…');
+  };
+  $('exportBtn').onclick=()=>download(`daymark-backup-${todayISO()}.json`,JSON.stringify(db,null,2),'application/json');
+  $('exportCsv').onclick=()=>{const rows=[['Date','Expense','Amount INR','Category']];Object.entries(db.days).sort(([a],[b])=>a.localeCompare(b)).forEach(([date,d])=>(d.expenses||[]).forEach(e=>rows.push([date,e.name,e.amount,e.category])));download(`daymark-expenses-${todayISO()}.csv`,rows.map(r=>r.map(csvCell).join(',')).join('\r\n'),'text/csv;charset=utf-8');};
+  $('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const parsed=JSON.parse(await f.text());if(!parsed||!parsed.days||typeof parsed.days!=='object')throw Error('Invalid backup');if(!confirm('Import this backup? It will replace tracker data currently stored in this browser.'))return;db={days:parsed.days||{},reviews:parsed.reviews||{},settings:{...db.settings,...(parsed.settings||{})}};save();renderAll();switchPage(activePage);toast('Backup imported');}catch(err){console.error(err);toast('Import failed: invalid JSON backup.');}finally{e.target.value='';}};
+  $('wipeBtn').onclick=()=>{if(confirm('Delete ALL tracker data? This cannot be undone. Export a backup first if needed.')){db={days:{},reviews:{},settings:{...db.settings}};save();renderAll();toast('All local tracker data deleted');}};
+  // Initialize the optional cloud connection after event handlers and UI are ready.
+  if(db.settings.supabaseUrl&&db.settings.supabaseKey)initSupabase();else setSyncStatus('OFFLINE');
+}
+init();
+})();
+</script>
+</body>
+</html>
